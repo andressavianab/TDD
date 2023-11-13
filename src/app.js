@@ -22,6 +22,8 @@ const user = require("./models/User");
 const User = mongoose.model("User", user);
 const bcrypt = require("bcrypt");
 
+const auth = require("./middlewares/auth");
+
 app.post("/auth", async (req, res) => {
   let { email, password } = req.body;
 
@@ -59,6 +61,10 @@ app.post("/auth", async (req, res) => {
       }
     }
   );
+});
+
+app.get("/test", auth, (req, res) => {
+  res.status(200).json({message: "Congratulations, you are authorized to enter this route."})
 });
 
 app.get("/", (req, res) => {

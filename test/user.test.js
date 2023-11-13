@@ -1,6 +1,7 @@
 let app = require("../src/app.js");
 let supertest = require("supertest");
 let request = supertest(app); //request object
+let jwt = require('jsonwebtoken')
 
 let mainUser = {
   name: "Teste",
@@ -85,4 +86,31 @@ describe("Authentication", () => {
     expect(res.statusCode).toEqual(403);
     expect(res.body.errors.password).toEqual("Incorrect password.");
   });
+});
+
+describe("Autorization", () => {
+  test("Should return 401 error if token is not present", async () => {
+    const res = await request.get("/test");
+
+    expect(res.statusCode).toEqual(401);
+    expect(res.body.error).toEqual("Invalid Token!");
+  });
+
+  test("Should return 401 error if token is invalid", async () => {
+    const res = await request.get("/test").set("x-access-token", "invalidToken");
+
+    expect(res.statusCode).toEqual(401);
+    expect(res.body.error).toEqual("Invalid Token!");
+  });
+
+  test("Should return 200 if token is valid", async () => {
+    const resLogin = await request.post("/auth").send({email: mainUser.email, password: mainUser.password});
+
+    const tokenValid = resLogin.body.token;
+
+    const resTest = await request.get("/test").set("x-access-token", tokenValid);
+    expect(resTest.statusCode).toEqual(200);
+    expect(resTest.body.message).toEqual("Congratulations, you are authorized to enter this route.");
+  });
+
 });
